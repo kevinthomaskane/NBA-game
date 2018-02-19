@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>NBA Challenge</title>
+    <link rel="stylesheet" type="text/css" href="Assets/css/reset.css">
+    <link rel="stylesheet" type="text/css" href="Assets/css/style.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+
+    <style>
+        .character {
+            width: 200px;
+            /* height: 200px; */
+            display: inline-block;
+            position: relative;
+            border: solid 1px green;
+            text-align: center;
+        }
+
+        .chosen {
+            width: 200px;
+            display: inline-block;
+            position: relative;
+            border: solid 1px green;
+            text-align: center;
+            background-color: green;
+        }
+
+        .enemies {
+            width: 200px;
+            display: inline-block;
+            position: relative;
+            border: solid 1px black;
+            text-align: center;
+            background-color: red;
+        }
+
+        .currentEnemy {
+            width: 200px;
+            display: inline-block;
+            position: relative;
+            border: solid 1px red;
+            text-align: center;
+            background-color: red;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+    </style>
+
+</head>
+
+
+
+<body>
+<div class="container">
+    <div class="character" id="john">
+        <h4>John Wall</h4>
+        <img src="https://imagesvc.timeincapp.com/v3/fan/image?url=https://nugglove.com/files/2016/10/9192151-ish-smith-john-wall-nba-washington-wizards-philadelphia-76ers.jpg&c=sc&w=150&h=150">
+        <h3>200</h3>
+    </div>
+    <div class="character" id="brad">
+        <h4>Bradley Beal</h4>
+        <img src="http://atbnews.com/wp-content/uploads/2016/06/report_wizards_expect_to_offer_max_deal_to_beal_m8-150x150.jpg">
+        <h3>250</h3>
+    </div>
+    <div class="character" id="otto">
+        <h4>Otto Porter</h4>
+        <img src="https://imagesvc.timeincapp.com/v3/fan/image?url=https://hoopshabit.com/files/2016/12/9723630-otto-porter-jr-nba-washington-wizards-orlando-magic.jpg&c=sc&w=150&h=150">
+        <h3>175</h3>
+    </div>
+    <div class="character" id="gortat">
+        <h4>Marcin Gortat</h4>
+        <img src="https://imagesvc.timeincapp.com/v3/fan/image?url=https://hoopshabit.com/files/2016/07/marcin-gortat-nba-washington-wizards-detroit-pistons.jpg&c=sc&w=150&h=150">
+        <h3>150</h3>
+    </div>
+</div>
+
+    <h3 id="other-players">Players available for 1v1</h3>
+    <br>
+    <button id="move">Make a move</button>
+    <h3 id="current-matchup">Current matchup</h3>
+    <div id="display-attacks"></div>
+    <button id="restart">restart</button>
+
+    <script>
+
+        var players = [$("#john"), $("#brad"), $("#otto"), $("#gortat")]
+        var playerValues = [{ name: "John Wall", health: 200, attackPower: 12, counterPower: 20 }, { name: "Bradley Beal", health: 220, attackPower: 15, counterPower: 21 }, { name: "Otto Porter", health: 180, attackPower: 10, counterPower: 8 }, { name: "Marcin Gortat", health: 140, attackPower: 6, counterPower: 10 },]
+        var playerChoice = [];
+        var enemy = [];
+        var attacks = 0;
+        var i = 0;
+        
+        assignValues();
+        var originalState = $(".container").clone();
+        var userChoice = false;
+        var enemyChoice = false;
+
+        function assignValues() {
+            for (let i = 0; i < playerValues.length; i++) {
+                players[i].attr("name", playerValues[i].name)
+                players[i].attr("health", playerValues[i].health)
+                players[i].attr("attackPower", playerValues[i].attackPower)
+                players[i].attr("counterPower", playerValues[i].counterPower)
+            }
+        }
+
+        $("#restart").click(function () {
+            playerChoice = [];
+            enemy = [];
+            attacks = 0;
+            i = 0;
+            userChoice = false;
+            enemyChoice = false;
+            $(".container").replaceWith(originalState.clone());
+            $(".enemies").remove();
+            $(".currentEnemy").remove();
+            $("#display-attacks").html("");
+            $("#move").attr("disabled", false)
+        })
+
+        $(document).on('click', 'div.character', function (event) {
+            event.preventDefault();
+            console.log("character works")
+            if (!userChoice) {
+                playerChoice.push($(this));
+                console.log(playerChoice)
+                userChoice = true;
+                $(this).attr("class", "chosen");
+                $(".character").insertAfter("#other-players");
+                $(".character").attr("class", "enemies");
+            }
+        })
+
+        $(document).on('click', 'div.enemies', function (event) {
+            event.preventDefault();
+            console.log("hello")
+            if (!enemyChoice) {
+                enemy.push($(this));
+                console.log(enemy)
+                enemyChoice = true;
+                $(this).attr("class", "currentEnemy");
+                $(".currentEnemy").insertAfter("#current-matchup");
+                
+            }
+        });
+
+        $("#move").click(function () {
+            var chosenAttack = playerChoice[0][0].attributes[4].nodeValue;
+            attacks += parseInt(chosenAttack);
+            var enemyCounter = enemy[i][0].attributes[5].nodeValue;
+            var chosenHealth = $(".chosen h3").html();
+            var enemyHealth = $(".currentEnemy h3").html();
+            enemyHealth -= attacks;
+            chosenHealth -= enemyCounter;
+            $(".currentEnemy h3").html(enemyHealth);
+            $(".chosen h3").html(chosenHealth);
+            $("#display-attacks").html(`
+            <p> You attacked ${enemy[i][0].attributes[2].nodeValue} for ${attacks} points </p>
+            <p> ${enemy[i][0].attributes[2].nodeValue} attacked you for ${enemy[i][0].attributes[5].nodeValue} points </p>`
+            )
+            if (enemyHealth <= 0) {
+                $(".currentEnemy").hide();
+                enemyChoice = false;
+                i++; 
+                checkForWin();              
+            }
+            if (chosenHealth <= 0){
+                $(".chosen h3").html("you lose")
+                $("#move").attr("disabled", true)
+            }
+        })
+
+        function checkForWin(){
+            console.log("hello")
+            if ($(".enemies").length === 0){
+                console.log("hello1")
+                $(".chosen h3").html("you win")
+                $("#move").attr("disabled", true) 
+            }
+        }
+
+
+    </script>
+
+    <script type="text/javascript" src="Assets/javascript/game.js"></script>
+</body>
+
+</html>
